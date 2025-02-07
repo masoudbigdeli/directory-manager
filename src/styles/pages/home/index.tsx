@@ -69,9 +69,6 @@ export const DirNameWrapper = styled.div({
     gap:'0.2rem',
     '> .title':{
         // backgroundColor:'yellow',
-        display:'flex',
-        justifyContent:'center',
-        alignItems:'center',
         fontSize:'1rem',
         textOverflow: 'ellipsis',
         width: '6rem',
@@ -87,4 +84,24 @@ export const DirNameWrapper = styled.div({
         justifyContent:'center',
         alignItems:'center',
     },
+});
+
+export const ModalBackDrop = styled.div({
+    width:'100vw',
+    height:'100vh',
+    backgroundColor:'#d9d9d9',
+    opacity:'0.7',
+    zIndex:2,
+    position:'relative',
+});
+
+export const ModalWrapper = styled.div({
+    width:'40%',
+    height:'20%',
+    borderRadius:'1.5rem',
+    zIndex:3,
+    position:'absolute',
+    left:'50%',
+    top:'50%',
+    transform:'translate(-50%, -50%)',
 });
