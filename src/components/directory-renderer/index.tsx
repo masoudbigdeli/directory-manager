@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import FolderIcon from "../../components/icons/folder-icon";
+import { DirNameWrapper, DirWrapper } from "../../styles/pages/home";
 
 export interface directoryManager {
   id: string;
@@ -31,8 +32,8 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
           const duplicateExists = checkDuplicate
             ? checkDuplicate(inputValue.trim())
             : directoryTreeObject.children.some(
-                (child) => child.name === inputValue.trim()
-              );
+              (child) => child.name === inputValue.trim()
+            );
           if (duplicateExists) {
             alert("It's duplicate name!");
             return;
@@ -79,14 +80,19 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
           autoFocus
         />
       ) : (
-        <div style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
-          <div style={{ width: "1rem" }}>
-            <FolderIcon />
-          </div>
-          <span>{directoryTreeObject.name}</span>
-          <button onClick={addChild}>Add</button>
-          <button onClick={removeSelf}>Remove</button>
-        </div>
+        <DirWrapper>
+          <DirNameWrapper>
+            <div className="icon">
+              <FolderIcon />
+            </div>
+            <div className="title">
+              <span>{directoryTreeObject.name}</span>
+            </div>
+            <button onClick={addChild}>Add</button>
+            <button onClick={removeSelf}>Remove</button>
+          </DirNameWrapper>
+
+        </DirWrapper>
       )}
       {directoryTreeObject.children.map((child) => (
         <DirectoryRenderer

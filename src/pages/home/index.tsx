@@ -42,5 +42,5 @@ export default function Home() {
             )}
         </BodyWrapper>
     </HomeWrapper>
-  );
-};
+  )
+}
