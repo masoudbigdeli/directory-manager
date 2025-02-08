@@ -43,9 +43,14 @@ export const BodyWrapper = styled.div({
     gap: '0.3rem',
 });
 
-export const DirWrapper = styled.div({
+interface DirWrapperProps {
+    hidden: boolean
+}
+
+export const DirWrapper = styled.div<DirWrapperProps>(({hidden}) =>{
+return {
     boxSizing: 'border-box',
-    display: 'flex',
+    display: hidden ? 'none' : 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -54,6 +59,7 @@ export const DirWrapper = styled.div({
     maxWidth: 'max-content',
     height: '1.5rem',
     gap: '0.2rem'
+}
 });
 
 export const DirNameWrapper = styled.div({
@@ -82,7 +88,7 @@ export const DirNameWrapper = styled.div({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        width: '1.3rem'
+        width: '2rem'
     },
 });
 
@@ -116,4 +122,14 @@ export const StatusButtons = styled.button({
     padding:'0',
     margin:'0',
     cursor:'pointer',
+});
+
+export const InputElement = styled.input({
+    border:'1px solid rgba(186, 186, 186, 0.7)',
+    borderRadius:'2rem',
+    outline:'none',
+    boxSizing:'border-box',
+    padding:'0.25rem',
+    paddingLeft:'1rem'
+
 });
