@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import FolderIcon from "../../components/icons/folder-icon";
+
 export interface directoryManager {
   id: string;
   name: string;
@@ -10,11 +11,13 @@ export interface directoryManager {
 interface DirectoryRendererProps {
   directory: directoryManager;
   onEnterHandler: (dir: directoryManager) => void;
+  checkDuplicate?: (name: string) => boolean;
 }
 
 const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
   directory,
   onEnterHandler,
+  checkDuplicate,
 }) => {
   const [directoryTreeObject, setDirectoryTreeObject] = useState(directory);
   const [isEditing, setIsEditing] = useState(directory.name === "");
@@ -25,27 +28,27 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
       if (e.key === "Enter") {
         const isValid = e.currentTarget.checkValidity();
         if (isValid && inputValue.trim() !== "") {
-          if (
-            directoryTreeObject.children.some(
-              (child) => child.name === inputValue.trim()
-            )
-          ) {
+          const duplicateExists = checkDuplicate
+            ? checkDuplicate(inputValue.trim())
+            : directoryTreeObject.children.some(
+                (child) => child.name === inputValue.trim()
+              );
+          if (duplicateExists) {
             alert("It's duplicate name!");
             return;
           }
-
           setDirectoryTreeObject({
             ...directoryTreeObject,
             name: inputValue.trim(),
           });
-
           setIsEditing(false);
+          onEnterHandler({ ...directoryTreeObject, name: inputValue.trim() });
         } else {
           alert("Please enter a folder name");
         }
       }
     },
-    [directoryTreeObject, inputValue]
+    [directoryTreeObject, inputValue, checkDuplicate, onEnterHandler]
   );
 
   const addChild = () => {
@@ -73,20 +76,16 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={onEnter}
+          autoFocus
         />
       ) : (
-        <div style={{
-            display:'flex',
-            gap:'0.25rem'
-        }}>
-        <div style={{
-            width:'1rem'
-        }}><FolderIcon /></div>
+        <div style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
+          <div style={{ width: "1rem" }}>
+            <FolderIcon />
+          </div>
           <span>{directoryTreeObject.name}</span>
           <button onClick={addChild}>Add</button>
-          {directoryTreeObject.layerIndex > 0 && (
-            <button onClick={removeSelf}>Remove</button>
-          )}
+          <button onClick={removeSelf}>Remove</button>
         </div>
       )}
       {directoryTreeObject.children.map((child) => (
@@ -110,6 +109,9 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
               });
             }
           }}
+          checkDuplicate={(name: string) =>
+            directoryTreeObject.children.some((child) => child.name === name)
+          }
         />
       ))}
     </div>
