@@ -1,6 +1,4 @@
-import HomeWrapper,{HeadersWrapper, BodyWrapper, DirWrapper, DirNameWrapper} from "../../styles/pages/home";
-import FolderIcon from "../../components/icons/folder-icon";
-import Modal from "../../components/modal";
+import HomeWrapper,{ HeadersWrapper, BodyWrapper } from "../../styles/pages/home";
 import {  useCallback, useState } from "react";
 import DirectoryRenderer from "../../components/directory-renderer";
 export interface directoryManager {
@@ -13,7 +11,11 @@ export interface directoryManager {
 export default function Home() {
     const [ treeObject, setTreeObject ] = useState<directoryManager | null>(null);
     const handleOnEnter = useCallback((object:directoryManager) => {
-        setTreeObject(object)
+        if (object.name === "__REMOVE__") {
+            setTreeObject(null);
+          } else {
+            setTreeObject(object);
+          }
     },[]);
 
 
