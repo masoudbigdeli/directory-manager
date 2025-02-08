@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
 import FolderIcon from "../../components/icons/folder-icon";
 import { DirNameWrapper, DirWrapper } from "../../styles/pages/home";
-
+import PlusIcon from "../../components/icons/plus-icon";
+import MinusIcon from "../../components/icons/minus-icon";
+import { StatusButtons } from "../../styles/pages/home";
 export interface directoryManager {
   id: string;
   name: string;
@@ -88,8 +90,8 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
             <div className="title">
               <span>{directoryTreeObject.name}</span>
             </div>
-            <button onClick={addChild}>Add</button>
-            <button onClick={removeSelf}>Remove</button>
+            <StatusButtons onClick={addChild}><PlusIcon/></StatusButtons>
+            <StatusButtons onClick={removeSelf}><MinusIcon/></StatusButtons>
           </DirNameWrapper>
 
         </DirWrapper>

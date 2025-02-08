@@ -1,6 +1,7 @@
-import HomeWrapper,{ HeadersWrapper, BodyWrapper } from "../../styles/pages/home";
+import HomeWrapper,{ HeadersWrapper, BodyWrapper, StatusButtons } from "../../styles/pages/home";
 import {  useCallback, useState } from "react";
 import DirectoryRenderer from "../../components/directory-renderer";
+import PlusIcon from "../../components/icons/plus-icon";
 export interface directoryManager {
     id : string;
     name: string;
@@ -24,14 +25,19 @@ export default function Home() {
   return (
     <HomeWrapper>
         <HeadersWrapper>
-            {!treeObject ? <button onClick={(e) => {
-                setTreeObject({
-                    id:crypto.randomUUID(),
-                    name:e.currentTarget.value,
-                    children:[],
-                    layerIndex:0
-                })
-            }}>ADD</button> :null}
+            <span>Directory Manager</span>
+            {!treeObject 
+            ? <StatusButtons onClick={(e) => {
+                        setTreeObject({
+                            id:crypto.randomUUID(),
+                            name:e.currentTarget.value,
+                            children:[],
+                            layerIndex:0
+                        })
+                    }}>
+                <PlusIcon/>
+            </StatusButtons> 
+            :null}
         </HeadersWrapper>
         <BodyWrapper>
         {treeObject && (

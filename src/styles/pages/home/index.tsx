@@ -4,6 +4,7 @@ import styled from "@emotion/styled"
 const HomeWrapper = styled.div({
     boxSizing: 'border-box',
     width: '30%',
+    minWidth:'15rem',
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
@@ -25,7 +26,8 @@ export const HeadersWrapper = styled.div({
     borderRadius: '1rem',
     padding: '1rem',
     display: 'flex',
-    justifyContent: 'flex-end'
+    justifyContent: 'space-between',
+    alignItems:'center'
 });
 
 export const BodyWrapper = styled.div({
@@ -102,4 +104,16 @@ export const ModalWrapper = styled.div({
     left: '50%',
     top: '50%',
     transform: 'translate(-50%, -50%)',
+});
+
+export const StatusButtons = styled.button({
+    width: 'fit-content',
+    height:'fit-content',
+    maxWidth:'1.5rem',
+    maxHeight:'1.5rem',
+    border:'none',
+    backgroundColor:'transparent',
+    padding:'0',
+    margin:'0',
+    cursor:'pointer',
 });
