@@ -43,14 +43,13 @@ export const BodyWrapper = styled.div({
     gap: '0.3rem',
 });
 
-interface DirWrapperProps {
-    hidden: boolean
-}
+// interface DirWrapperProps {
+//     hidden: boolean
+// }
 
-export const DirWrapper = styled.div<DirWrapperProps>(({hidden}) =>{
-return {
+export const DirWrapper = styled.div({
     boxSizing: 'border-box',
-    display: hidden ? 'none' : 'flex',
+    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -59,7 +58,7 @@ return {
     maxWidth: 'max-content',
     height: '1.5rem',
     gap: '0.2rem'
-}
+
 });
 
 export const DirNameWrapper = styled.div({
@@ -88,7 +87,6 @@ export const DirNameWrapper = styled.div({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        width: '2rem'
     },
 });
 

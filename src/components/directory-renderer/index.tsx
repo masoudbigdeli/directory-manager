@@ -27,17 +27,13 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
   const [ directoryTreeObject, setDirectoryTreeObject] = useState(directory);
   const [ isEditing, setIsEditing] = useState(directory.name === "");
   const [ inputValue, setInputValue] = useState("");
-  // const [ extended, setExtended ] = useState<boolean>(false);
 
-  const iconRotationHandler = useCallback((id:string) => {
-    const currentDir = directoryTreeObject?.children.find(child => child.id === id);
-    if (!currentDir) return; 
-    
+  const iconRotationHandler = useCallback(() => {
     setDirectoryTreeObject({
       ...directoryTreeObject,
-      isExtended: !currentDir.isExtended
+      isExtended: !directoryTreeObject.isExtended
     });
-  },[directoryTreeObject]);
+  }, [directoryTreeObject]);
 
   const onEnter = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -79,6 +75,7 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
 
     setDirectoryTreeObject({
       ...directoryTreeObject,
+      isExtended:true,
       children: [...directoryTreeObject.children, newChild],
     });
   };
@@ -97,11 +94,11 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
           autoFocus
         />
       ) : (
-        <DirWrapper hidden={!directoryTreeObject.isExtended} >
+        <DirWrapper>
           <DirNameWrapper>
-            <div className="icon" onClick={() => iconRotationHandler(directoryTreeObject.id)}>
-              { directoryTreeObject.children.length !== 0 && <ArrowIcon rotated={!directoryTreeObject.isExtended} />}
-              <FolderIcon />
+            <div className="icon" onClick={iconRotationHandler}>
+              { directoryTreeObject.children.length !== 0 && <ArrowIcon rotated={directoryTreeObject.isExtended} />}
+              <FolderIcon width={1.3}/>
             </div>
             <div className="title">
               <span>{directoryTreeObject.name}</span>
@@ -112,7 +109,9 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
 
         </DirWrapper>
       )}
-      {directoryTreeObject.isExtended && directoryTreeObject.children.map((child) => (
+
+      <div style={{ display: directoryTreeObject.isExtended ? "block" : "none" }}> 
+        {directoryTreeObject.children.map((child) => (
         <DirectoryRenderer
         key={child.id}
         directory={child}
@@ -138,6 +137,7 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
         }
       />
       ))}
+    </div>
     </div>
   );
 };
