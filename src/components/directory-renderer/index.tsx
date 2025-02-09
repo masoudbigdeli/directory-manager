@@ -3,12 +3,14 @@ import FolderIcon from "../../components/icons/folder-icon";
 import { DirNameWrapper, DirWrapper } from "../../styles/pages/home";
 import PlusIcon from "../../components/icons/plus-icon";
 import MinusIcon from "../../components/icons/minus-icon";
-import { StatusButtons } from "../../styles/pages/home";
+import ArrowIcon from "../icons/arrow-icon";
+import { StatusButtons, InputElement } from "../../styles/pages/home";
 export interface directoryManager {
   id: string;
   name: string;
   children: directoryManager[];
   layerIndex: number;
+  isExtended:boolean;
 }
 
 interface DirectoryRendererProps {
@@ -22,9 +24,16 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
   onEnterHandler,
   checkDuplicate,
 }) => {
-  const [directoryTreeObject, setDirectoryTreeObject] = useState(directory);
-  const [isEditing, setIsEditing] = useState(directory.name === "");
-  const [inputValue, setInputValue] = useState("");
+  const [ directoryTreeObject, setDirectoryTreeObject] = useState(directory);
+  const [ isEditing, setIsEditing] = useState(directory.name === "");
+  const [ inputValue, setInputValue] = useState("");
+
+  const iconRotationHandler = useCallback(() => {
+    setDirectoryTreeObject({
+      ...directoryTreeObject,
+      isExtended: !directoryTreeObject.isExtended
+    });
+  }, [directoryTreeObject]);
 
   const onEnter = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -43,9 +52,10 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
           setDirectoryTreeObject({
             ...directoryTreeObject,
             name: inputValue.trim(),
+            isExtended:true
           });
           setIsEditing(false);
-          onEnterHandler({ ...directoryTreeObject, name: inputValue.trim() });
+          onEnterHandler({ ...directoryTreeObject, name: inputValue.trim(), isExtended:true });
         } else {
           alert("Please enter a folder name");
         }
@@ -60,10 +70,12 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
       name: "",
       children: [],
       layerIndex: directoryTreeObject.layerIndex + 1,
+      isExtended:true,
     };
 
     setDirectoryTreeObject({
       ...directoryTreeObject,
+      isExtended:true,
       children: [...directoryTreeObject.children, newChild],
     });
   };
@@ -75,7 +87,7 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
   return (
     <div style={{ marginLeft: directoryTreeObject.layerIndex * 20 }}>
       {isEditing ? (
-        <input
+        <InputElement
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={onEnter}
@@ -84,8 +96,9 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
       ) : (
         <DirWrapper>
           <DirNameWrapper>
-            <div className="icon">
-              <FolderIcon />
+            <div className="icon" onClick={iconRotationHandler}>
+              { directoryTreeObject.children.length !== 0 && <ArrowIcon rotated={directoryTreeObject.isExtended} />}
+              <FolderIcon width={1.3}/>
             </div>
             <div className="title">
               <span>{directoryTreeObject.name}</span>
@@ -96,32 +109,35 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
 
         </DirWrapper>
       )}
-      {directoryTreeObject.children.map((child) => (
+
+      <div style={{ display: directoryTreeObject.isExtended ? "block" : "none" }}> 
+        {directoryTreeObject.children.map((child) => (
         <DirectoryRenderer
-          key={child.id}
-          directory={child}
-          onEnterHandler={(updatedChild) => {
-            if (updatedChild.name === "__REMOVE__") {
-              setDirectoryTreeObject({
-                ...directoryTreeObject,
-                children: directoryTreeObject.children.filter(
-                  (c) => c.id !== child.id
-                ),
-              });
-            } else {
-              setDirectoryTreeObject({
-                ...directoryTreeObject,
-                children: directoryTreeObject.children.map((c) =>
-                  c.id === updatedChild.id ? updatedChild : c
-                ),
-              });
-            }
-          }}
-          checkDuplicate={(name: string) =>
-            directoryTreeObject.children.some((child) => child.name === name)
+        key={child.id}
+        directory={child}
+        onEnterHandler={(updatedChild) => {
+          if (updatedChild.name === "__REMOVE__") {
+            setDirectoryTreeObject({
+              ...directoryTreeObject,
+              children: directoryTreeObject.children.filter(
+                (c) => c.id !== child.id
+              ),
+            });
+          } else {
+            setDirectoryTreeObject({
+              ...directoryTreeObject,
+              children: directoryTreeObject.children.map((c) =>
+                c.id === updatedChild.id ? updatedChild : c
+              ),
+            });
           }
-        />
+        }}
+        checkDuplicate={(name: string) =>
+          directoryTreeObject.children.some((child) => child.name === name)
+        }
+      />
       ))}
+    </div>
     </div>
   );
 };

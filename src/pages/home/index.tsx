@@ -7,6 +7,7 @@ export interface directoryManager {
     name: string;
     children: Array<directoryManager>;
     layerIndex:number;
+    isExtended:boolean
 
 }
 export default function Home() {
@@ -32,7 +33,8 @@ export default function Home() {
                             id:crypto.randomUUID(),
                             name:e.currentTarget.value,
                             children:[],
-                            layerIndex:0
+                            layerIndex:0,
+                            isExtended:true
                         })
                     }}>
                 <PlusIcon/>
