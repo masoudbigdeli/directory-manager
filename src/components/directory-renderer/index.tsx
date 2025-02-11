@@ -114,7 +114,6 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
           layerIndex: directoryTreeObject.layerIndex + 1,
           isExtended: true,
         };
-        debugger
         setDirectoryTreeObject({
           ...directoryTreeObject,
           isExtended: true,
@@ -168,7 +167,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
         <DirWrapper>
           <DirNameWrapper>
             <div className="icon" onClick={iconRotationHandler}>
-              {(directoryTreeObject as DirectoryManager).children.length !== 0 && (
+              {Object.keys(directoryTreeObject).includes('isExtended') && (directoryTreeObject as DirectoryManager).children.length !== 0 && (
                 <ArrowIcon rotated={(directoryTreeObject as DirectoryManager).isExtended} />
               )}
               <FolderIcon width={1.3} />
@@ -192,7 +191,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
       <div
         style={{ display: (directoryTreeObject as DirectoryManager).isExtended ? "block" : "none" }}
       >
-        {(directoryTreeObject as DirectoryManager).children.map((child) => {
+        {Object.keys(directoryTreeObject).includes('isExtended') && (directoryTreeObject as DirectoryManager).children.map((child) => {
           return (
             <DirectoryAndFileRenderer
               key={child.id}
