@@ -1,5 +1,7 @@
+
 import { useState, useCallback, useMemo } from "react";
 import FolderIcon from "../../components/icons/folder-icon";
+import FileIcon from "../../components/icons/file-icon";
 import { DirNameWrapper, DirWrapper } from "../../styles/pages/home";
 import AddDirectoryIcon from "../icons/add-directory-icon";
 import RemoveIcon from "../icons/remove-icon";
@@ -135,7 +137,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
   const removeSelf = () => {
     if ( Object.keys(directoryTreeObject).includes('file')) {
       if ((directoryTreeObject as FileManager).file) {
-      setDirectoryTreeObject({
+        onEnterHandler({
         ...directoryTreeObject,
         file: new File([(directoryTreeObject as FileManager).file!], '__REMOVE__'),
       });
@@ -170,20 +172,30 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
               {Object.keys(directoryTreeObject).includes('isExtended') && (directoryTreeObject as DirectoryManager).children.length !== 0 && (
                 <ArrowIcon rotated={(directoryTreeObject as DirectoryManager).isExtended} />
               )}
-              <FolderIcon width={1.3} />
+              {Object.keys(directoryTreeObject).includes('isExtended')
+              ?<FolderIcon width={1.3} />
+              : <FileIcon/>}
             </div>
             <div className="title">
               <span>{feildName}</span>
             </div>
-            <StatusButtons onClick={() => addChild('folder')}>
-              <AddDirectoryIcon />
-            </StatusButtons>
-            <StatusButtons onClick={removeSelf}>
-              <RemoveIcon />
-            </StatusButtons>
-            <StatusButtons onClick={() => addChild('file')}>
-              <AddFileIcon />
-            </StatusButtons>
+            {Object.keys(directoryTreeObject).includes('isExtended')
+            ?<>            
+                <StatusButtons onClick={() => addChild('folder')}>
+                <AddDirectoryIcon />
+                </StatusButtons>
+                <StatusButtons onClick={removeSelf}>
+                  <RemoveIcon />
+                </StatusButtons>
+                <StatusButtons onClick={() => addChild('file')}>
+                  <AddFileIcon />
+                </StatusButtons>
+              </>
+              :         
+                <StatusButtons onClick={removeSelf}>
+                <RemoveIcon />
+                </StatusButtons>
+            }
           </DirNameWrapper>
         </DirWrapper>
       )}
@@ -197,6 +209,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
               key={child.id}
               directoryOrFile={child}
               onEnterHandler={(updatedChild) => {
+                console.log((updatedChild as FileManager).file?.name)
                 if ((updatedChild as DirectoryManager).name === "__REMOVE__" || (updatedChild as FileManager).file?.name === "__REMOVE__") {
                   setDirectoryTreeObject({
                     ...directoryTreeObject,
