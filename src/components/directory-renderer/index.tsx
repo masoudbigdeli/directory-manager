@@ -1,38 +1,51 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import FolderIcon from "../../components/icons/folder-icon";
 import { DirNameWrapper, DirWrapper } from "../../styles/pages/home";
-import PlusIcon from "../../components/icons/plus-icon";
-import MinusIcon from "../../components/icons/minus-icon";
+import AddDirectoryIcon from "../icons/add-directory-icon";
+import RemoveIcon from "../icons/remove-icon";
 import ArrowIcon from "../icons/arrow-icon";
+import AddFileIcon from "../icons/add-file-icon";
 import { StatusButtons, InputElement } from "../../styles/pages/home";
-export interface directoryManager {
+export interface DirectoryManager {
   id: string;
   name: string;
-  children: directoryManager[];
+  children: Array<DirectoryManager | FileManager>;
   layerIndex: number;
-  isExtended:boolean;
+  isExtended: boolean;
+}
+export interface FileManager {
+  id: string;
+  file: File | null;
+  layerIndex: number;
 }
 
-interface DirectoryRendererProps {
-  directory: directoryManager;
-  onEnterHandler: (dir: directoryManager) => void;
+interface DirectoryAndFileRendererProps {
+  directoryOrFile: DirectoryManager | FileManager;
+  onEnterHandler: (dirOrFile: DirectoryManager | FileManager) => void;
   checkDuplicate?: (name: string) => boolean;
 }
 
-const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
-  directory,
+const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
+  directoryOrFile,
   onEnterHandler,
-  checkDuplicate,
+  checkDuplicate
 }) => {
-  const [ directoryTreeObject, setDirectoryTreeObject] = useState(directory);
-  const [ isEditing, setIsEditing] = useState(directory.name === "");
-  const [ inputValue, setInputValue] = useState("");
+
+  const fieldChecker = Object.keys(directoryOrFile).includes('file') 
+  ? (directoryOrFile as FileManager).file === null
+  : (directoryOrFile as DirectoryManager).name ===''
+
+  const [directoryTreeObject, setDirectoryTreeObject] = useState(directoryOrFile);
+  const [isEditing, setIsEditing] = useState<boolean>(fieldChecker);
+  const [inputValue, setInputValue] = useState("");
 
   const iconRotationHandler = useCallback(() => {
+    if( Object.keys(directoryTreeObject).includes('isExtended') ){
     setDirectoryTreeObject({
       ...directoryTreeObject,
-      isExtended: !directoryTreeObject.isExtended
+      isExtended: !(directoryTreeObject as DirectoryManager).isExtended,
     });
+  }
   }, [directoryTreeObject]);
 
   const onEnter = useCallback(
@@ -40,49 +53,107 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
       if (e.key === "Enter") {
         const isValid = e.currentTarget.checkValidity();
         if (isValid && inputValue.trim() !== "") {
-          const duplicateExists = checkDuplicate
-            ? checkDuplicate(inputValue.trim())
-            : directoryTreeObject.children.some(
-              (child) => child.name === inputValue.trim()
-            );
+          const duplicateExists = checkDuplicate 
+          ? checkDuplicate(inputValue.trim())
+          : (directoryTreeObject as DirectoryManager).children.some(
+                (child) => {
+                  if (Object.keys(directoryTreeObject).includes('file')){
+                   return (child as FileManager).file?.name === inputValue.trim()
+                  }
+                  else{
+                    return (child as DirectoryManager).name === inputValue.trim()
+                  }
+                  
+                } 
+              );
           if (duplicateExists) {
             alert("It's duplicate name!");
             return;
           }
-          setDirectoryTreeObject({
-            ...directoryTreeObject,
-            name: inputValue.trim(),
-            isExtended:true
-          });
+          if (Object.keys(directoryTreeObject).includes('file')) {
+            setDirectoryTreeObject({
+              ...directoryTreeObject,
+              file: new File([],`${inputValue.trim()}.txt`),
+            });
+          } else{
+            setDirectoryTreeObject({
+              ...directoryTreeObject,
+              name: inputValue.trim(),
+              isExtended: true,
+            });
+          }
+
           setIsEditing(false);
-          onEnterHandler({ ...directoryTreeObject, name: inputValue.trim(), isExtended:true });
+          if (Object.keys(directoryTreeObject).includes('file')) {
+            onEnterHandler({
+              ...directoryTreeObject,
+              file: new File([],`${inputValue.trim()}.txt`),
+            });
+          } else{
+            onEnterHandler({
+              ...directoryTreeObject,
+              name: inputValue.trim(),
+              isExtended: true,
+            });
+          }
         } else {
           alert("Please enter a folder name");
         }
       }
     },
-    [directoryTreeObject, inputValue, checkDuplicate, onEnterHandler]
+    [directoryTreeObject, inputValue, onEnterHandler, checkDuplicate]
   );
 
-  const addChild = () => {
-    const newChild = {
-      id: crypto.randomUUID(),
-      name: "",
-      children: [],
-      layerIndex: directoryTreeObject.layerIndex + 1,
-      isExtended:true,
+  const addChild = (type: 'folder' | 'file') => {
+    if ( Object.keys(directoryTreeObject).includes('file')) return
+      if ( type === 'folder') {
+        const newChild = {
+          id: crypto.randomUUID(),
+          name: "",
+          children: [],
+          layerIndex: directoryTreeObject.layerIndex + 1,
+          isExtended: true,
+        };
+        debugger
+        setDirectoryTreeObject({
+          ...directoryTreeObject,
+          isExtended: true,
+          children: [...(directoryTreeObject as DirectoryManager).children, newChild],
+        });
+      } else {
+            const newFile = {
+              id: crypto.randomUUID(),
+              layerIndex: directoryTreeObject.layerIndex + 1,
+              file: null,
+            }
+          setDirectoryTreeObject({
+            ...directoryTreeObject,
+            children: [...(directoryTreeObject as DirectoryManager).children, newFile],
+          });
+      }
     };
 
-    setDirectoryTreeObject({
-      ...directoryTreeObject,
-      isExtended:true,
-      children: [...directoryTreeObject.children, newChild],
-    });
+  const removeSelf = () => {
+    if ( Object.keys(directoryTreeObject).includes('file')) {
+      if ((directoryTreeObject as FileManager).file) {
+      setDirectoryTreeObject({
+        ...directoryTreeObject,
+        file: new File([(directoryTreeObject as FileManager).file!], '__REMOVE__'),
+      });
+      }
+    } else {
+      onEnterHandler({ ...directoryTreeObject, name: "__REMOVE__" });
+    };
+    
   };
 
-  const removeSelf = () => {
-    onEnterHandler({ ...directoryTreeObject, name: "__REMOVE__" });
-  };
+  const feildName = useMemo(() =>{
+    if (Object.keys(directoryTreeObject).includes('file')){
+      return (directoryTreeObject as FileManager).file?.name
+    } else {
+      return (directoryTreeObject as DirectoryManager).name
+    }
+  },[directoryTreeObject])
 
   return (
     <div style={{ marginLeft: directoryTreeObject.layerIndex * 20 }}>
@@ -97,49 +168,72 @@ const DirectoryRenderer: React.FC<DirectoryRendererProps> = ({
         <DirWrapper>
           <DirNameWrapper>
             <div className="icon" onClick={iconRotationHandler}>
-              { directoryTreeObject.children.length !== 0 && <ArrowIcon rotated={directoryTreeObject.isExtended} />}
-              <FolderIcon width={1.3}/>
+              {(directoryTreeObject as DirectoryManager).children.length !== 0 && (
+                <ArrowIcon rotated={(directoryTreeObject as DirectoryManager).isExtended} />
+              )}
+              <FolderIcon width={1.3} />
             </div>
             <div className="title">
-              <span>{directoryTreeObject.name}</span>
+              <span>{feildName}</span>
             </div>
-            <StatusButtons onClick={addChild}><PlusIcon/></StatusButtons>
-            <StatusButtons onClick={removeSelf}><MinusIcon/></StatusButtons>
+            <StatusButtons onClick={() => addChild('folder')}>
+              <AddDirectoryIcon />
+            </StatusButtons>
+            <StatusButtons onClick={removeSelf}>
+              <RemoveIcon />
+            </StatusButtons>
+            <StatusButtons onClick={() => addChild('file')}>
+              <AddFileIcon />
+            </StatusButtons>
           </DirNameWrapper>
-
         </DirWrapper>
       )}
 
-      <div style={{ display: directoryTreeObject.isExtended ? "block" : "none" }}> 
-        {directoryTreeObject.children.map((child) => (
-        <DirectoryRenderer
-        key={child.id}
-        directory={child}
-        onEnterHandler={(updatedChild) => {
-          if (updatedChild.name === "__REMOVE__") {
-            setDirectoryTreeObject({
-              ...directoryTreeObject,
-              children: directoryTreeObject.children.filter(
-                (c) => c.id !== child.id
-              ),
-            });
-          } else {
-            setDirectoryTreeObject({
-              ...directoryTreeObject,
-              children: directoryTreeObject.children.map((c) =>
-                c.id === updatedChild.id ? updatedChild : c
-              ),
-            });
-          }
-        }}
-        checkDuplicate={(name: string) =>
-          directoryTreeObject.children.some((child) => child.name === name)
-        }
-      />
-      ))}
-    </div>
+      <div
+        style={{ display: (directoryTreeObject as DirectoryManager).isExtended ? "block" : "none" }}
+      >
+        {(directoryTreeObject as DirectoryManager).children.map((child) => {
+          return (
+            <DirectoryAndFileRenderer
+              key={child.id}
+              directoryOrFile={child}
+              onEnterHandler={(updatedChild) => {
+                if ((updatedChild as DirectoryManager).name === "__REMOVE__" || (updatedChild as FileManager).file?.name === "__REMOVE__") {
+                  setDirectoryTreeObject({
+                    ...directoryTreeObject,
+                    children: (directoryTreeObject as DirectoryManager).children.filter(
+                      (c) => c.id !== child.id
+                    ),
+                  });
+                } else {
+                  setDirectoryTreeObject({
+                    ...directoryTreeObject,
+                    children: (directoryTreeObject as DirectoryManager).children.map((c) =>
+                      c.id === updatedChild.id ? updatedChild : c
+                    ),
+                  });
+                }
+              }}
+              checkDuplicate={(name: string) => {
+                return (directoryTreeObject as DirectoryManager).children.some(
+                (child) => {
+                  if (Object.keys(directoryTreeObject).includes('file')){
+                    return (child as FileManager).file?.name === name
+                  }
+                  else{
+                    return (child as DirectoryManager).name === name
+                  }
+                  
+                } 
+              );
+            }
+              }
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
 
-export default DirectoryRenderer;
+export default DirectoryAndFileRenderer;
