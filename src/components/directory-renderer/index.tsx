@@ -159,7 +159,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
   },[directoryTreeObject])
 
   return (
-    <div style={{ marginLeft: directoryTreeObject.layerIndex * 20 }}>
+    <div style={{ marginLeft:directoryTreeObject.layerIndex === 0 ? '0': directoryTreeObject.layerIndex + 15, borderLeft:directoryTreeObject.layerIndex === 0 || isEditing ? 'none' :'1px solid black' }}>
       {isEditing ? (
         <InputElement
           value={inputValue}
@@ -173,7 +173,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
             <div className="icon" onClick={iconRotationHandler}>
               {Object.keys(directoryTreeObject).includes('isExtended') && (directoryTreeObject as DirectoryManager).children.length !== 0 ? (
                 <ArrowIcon rotated={(directoryTreeObject as DirectoryManager).isExtended} />
-              ): <div style={{width:'1.5rem'}}></div>}
+              ): <div style={{width:directoryTreeObject.layerIndex === 0 ? 0 : '1.5rem'}}></div>}
               {Object.keys(directoryTreeObject).includes('isExtended')
               ?<FolderIcon width={1.3} />
               : <FileIcon/>}

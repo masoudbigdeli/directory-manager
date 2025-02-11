@@ -6,11 +6,11 @@ import HomeWrapper, {
 import { useCallback, useState } from "react";
 import DirectoryRenderer from "../../components/directory-renderer";
 import PlusIcon from "../../components/icons/add-directory-icon";
-import { DirectoryManager } from "../../components/directory-renderer";
+import { DirectoryManager, FileManager } from "../../components/directory-renderer";
 export default function Home() {
-  const [treeObject, setTreeObject] = useState<DirectoryManager | null>(null);
-  const handleOnEnter = useCallback((object: DirectoryManager) => {
-    if (object.name === "__REMOVE__") {
+  const [treeObject, setTreeObject] = useState<DirectoryManager | FileManager | null >(null);
+  const handleOnEnter = useCallback((object: DirectoryManager | FileManager) => {
+    if ((object as DirectoryManager).name === "__REMOVE__" || (object as FileManager).file?.name === "__REMOVE__") {
       setTreeObject(null);
     } else {
       setTreeObject(object);
