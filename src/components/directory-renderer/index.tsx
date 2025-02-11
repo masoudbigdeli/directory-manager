@@ -8,6 +8,8 @@ import RemoveIcon from "../icons/remove-icon";
 import ArrowIcon from "../icons/arrow-icon";
 import AddFileIcon from "../icons/add-file-icon";
 import { StatusButtons, InputElement } from "../../styles/pages/home";
+
+
 export interface DirectoryManager {
   id: string;
   name: string;
@@ -169,9 +171,9 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
         <DirWrapper>
           <DirNameWrapper>
             <div className="icon" onClick={iconRotationHandler}>
-              {Object.keys(directoryTreeObject).includes('isExtended') && (directoryTreeObject as DirectoryManager).children.length !== 0 && (
+              {Object.keys(directoryTreeObject).includes('isExtended') && (directoryTreeObject as DirectoryManager).children.length !== 0 ? (
                 <ArrowIcon rotated={(directoryTreeObject as DirectoryManager).isExtended} />
-              )}
+              ): <div style={{width:'1.5rem'}}></div>}
               {Object.keys(directoryTreeObject).includes('isExtended')
               ?<FolderIcon width={1.3} />
               : <FileIcon/>}
