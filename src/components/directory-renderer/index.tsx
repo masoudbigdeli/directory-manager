@@ -62,7 +62,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
           : (directoryTreeObject as DirectoryManager).children.some(
                 (child) => {
                   if (Object.keys(directoryTreeObject).includes('file')){
-                   return (child as FileManager).file?.name === inputValue.trim()
+                    return (child as FileManager).file?.name === inputValue.trim()
                   }
                   else{
                     return (child as DirectoryManager).name === inputValue.trim()
@@ -159,8 +159,11 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
   },[directoryTreeObject])
 
   return (
-    <div style={{ marginLeft:directoryTreeObject.layerIndex === 0 ? '0': directoryTreeObject.layerIndex + 15, borderLeft:directoryTreeObject.layerIndex === 0 || isEditing ? 'none' :'1px solid black' }}>
-      {isEditing ? (
+    <div style={{ marginLeft:directoryTreeObject.layerIndex === 0 ? '0': directoryTreeObject.layerIndex + 15,
+                  borderLeft:directoryTreeObject.layerIndex === 0 || isEditing ? 'none' :'1px solid black' }}>
+      {
+        isEditing 
+        ? (
         <InputElement
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
