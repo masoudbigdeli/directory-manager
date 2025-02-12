@@ -37,7 +37,7 @@ export const EditorWrapper = styled.div({
 
 export const MenuWrapper =styled.div({
     boxSizing:'border-box',
-    width: '25%',
+    width: '30%',
     height: '100vh',
     minWidth:'15rem',
     display:'flex',
@@ -159,7 +159,7 @@ export const InputElement = styled.input({
     paddingLeft:'1rem'
 
 });
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     style:CSSProperties
 }
 export const Button = styled.button<ButtonProps>( ({style}) =>{

@@ -27,12 +27,16 @@ interface DirectoryAndFileRendererProps {
   directoryOrFile: DirectoryManager | FileManager;
   onEnterHandler: (dirOrFile: DirectoryManager | FileManager) => void;
   checkDuplicate?: (name: string) => boolean;
+  fileContent:string | null;
+  onFileContentChange?: (newContent: string) => void;
 }
 
 const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
   directoryOrFile,
   onEnterHandler,
-  checkDuplicate
+  checkDuplicate,
+  fileContent,
+  onFileContentChange,
 }) => {
 
   const fieldChecker = Object.keys(directoryOrFile).includes('file') 
@@ -41,7 +45,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
 
   const [directoryTreeObject, setDirectoryTreeObject] = useState(directoryOrFile);
   const [isEditing, setIsEditing] = useState<boolean>(fieldChecker);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
 
   const iconRotationHandler = useCallback(() => {
     if( Object.keys(directoryTreeObject).includes('isExtended') ){
@@ -91,7 +95,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
           if (Object.keys(directoryTreeObject).includes('file')) {
             onEnterHandler({
               ...directoryTreeObject,
-              file: new File([],`${inputValue.trim()}.txt`),
+              file: new File(['ygyggy'],`${inputValue.trim()}.txt`),
             });
           } else{
             onEnterHandler({
@@ -150,6 +154,21 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
     
   };
 
+  const fileOpenHandler = () =>{
+    const FileOpenManager = directoryTreeObject as FileManager;
+    if (FileOpenManager.file){
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (onFileContentChange) {
+          onFileContentChange(event.target?.result as string);
+        }
+      };
+      reader.readAsText(FileOpenManager.file);
+    } else {
+        alert('There is no file to read!');
+    }
+  };
+
   const feildName = useMemo(() =>{
     if (Object.keys(directoryTreeObject).includes('file')){
       return (directoryTreeObject as FileManager).file?.name
@@ -179,7 +198,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
               ): <div style={{width:directoryTreeObject.layerIndex === 0 ? 0 : '1.5rem'}}></div>}
               {Object.keys(directoryTreeObject).includes('isExtended')
               ?<FolderIcon width={1.3} />
-              : <FileIcon/>}
+              : <div style={{cursor:'pointer'}} onClick={fileOpenHandler}><FileIcon /></div>}
             </div>
             <div className="title">
               <span>{feildName}</span>
@@ -245,6 +264,8 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
               );
             }
               }
+              fileContent={fileContent}
+              onFileContentChange={onFileContentChange}
             />
           );
         })}
