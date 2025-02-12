@@ -1,22 +1,50 @@
 import styled from "@emotion/styled"
+import { CSSProperties } from "react";
 
 
 const HomeWrapper = styled.div({
     boxSizing: 'border-box',
-    width: '30%',
+    width: '100%',
     minWidth:'15rem',
     height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     gap: '0.5rem',
-
-
+    display:'flex',
+    flexDirection:'row',
 })
-
 
 export default HomeWrapper
 
+export const TextAreaWrapper = styled.textarea({
+    boxSizing:'border-box',
+    theme:'default',
+    width:'100%',
+    height:'100vh',
+    border:'1px solid rgb(173, 172, 172)',
+    borderRadius:'1rem',
+    fontSize:'20px',
+    padding:'1.2rem'
+});
+
+export const EditorWrapper = styled.div({
+    position:'relative',
+    boxSizing:'border-box',
+    width:'100%',
+    height:'100vh',
+    display:'flex',
+    alignItems:'end',
+    justifyContent:'right',
+});
+
+export const MenuWrapper =styled.div({
+    boxSizing:'border-box',
+    width: '25%',
+    height: '100vh',
+    minWidth:'15rem',
+    display:'flex',
+    flexDirection: 'column',
+    alignItems: 'start',
+    gap: '0.5rem',
+});
 
 export const HeadersWrapper = styled.div({
     boxSizing: 'border-box',
@@ -33,7 +61,7 @@ export const HeadersWrapper = styled.div({
 export const BodyWrapper = styled.div({
     boxSizing: 'border-box',
     width: '100%',
-    height: '100%',
+    height: '100vh',
     border: '1px solid rgb(173, 172, 172)',
     borderRadius: '1rem',
     overflow: 'auto',
@@ -130,4 +158,13 @@ export const InputElement = styled.input({
     padding:'0.25rem',
     paddingLeft:'1rem'
 
+});
+interface ButtonProps {
+    style:CSSProperties
+}
+export const Button = styled.button<ButtonProps>( ({style}) =>{
+return {
+    position:'absolute',
+    ...style
+}
 });
