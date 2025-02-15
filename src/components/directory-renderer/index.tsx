@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import FolderIcon from "../../components/icons/folder-icon";
 import FileIcon from "../../components/icons/file-icon";
 import { DirNameWrapper, DirWrapper } from "../../styles/pages/home";
@@ -26,7 +26,7 @@ export interface FileManager {
 interface DirectoryAndFileRendererProps {
   directoryOrFile: DirectoryManager | FileManager;
   onEnterHandler: (dirOrFile: DirectoryManager | FileManager) => void;
-  checkDuplicate?: (name: string) => boolean;
+  checkDuplicate?: (name: string, type: "file" | "directory") => boolean;
   fileContent:string | null;
   onFileContentChange?: (newContent: string) => void;
 }
@@ -47,6 +47,10 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
   const [isEditing, setIsEditing] = useState<boolean>(fieldChecker);
   const [inputValue, setInputValue] = useState('');
 
+  useEffect(() => {
+    setDirectoryTreeObject(directoryOrFile);
+  }, [directoryOrFile]);
+  
   const iconRotationHandler = useCallback(() => {
     if( Object.keys(directoryTreeObject).includes('isExtended') ){
     setDirectoryTreeObject({
@@ -60,57 +64,54 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         const isValid = e.currentTarget.checkValidity();
-        if (isValid && inputValue.trim() !== "") {
-          const duplicateExists = checkDuplicate 
-          ? checkDuplicate(inputValue.trim())
-          : (directoryTreeObject as DirectoryManager).children.some(
-                (child) => {
-                  if (Object.keys(directoryTreeObject).includes('file')){
-                    return (child as FileManager).file?.name === inputValue.trim()
-                  }
-                  else{
-                    return (child as DirectoryManager).name === inputValue.trim()
-                  }
-                  
-                } 
-              );
+        const typedValue = inputValue.trim();
+        if (isValid && typedValue !== "") {
+          const isFile = Object.keys(directoryTreeObject).includes("file");
+          const finalName = isFile
+            ? typedValue.endsWith(".txt") ? typedValue : typedValue + ".txt"
+            : typedValue;
+          const duplicateExists = checkDuplicate
+            ? checkDuplicate(
+                finalName,
+                isFile ? "file" : "directory"
+              )
+            : false;
+  
           if (duplicateExists) {
             alert("It's duplicate name!");
             return;
           }
-          if (Object.keys(directoryTreeObject).includes('file')) {
-            setDirectoryTreeObject({
+          if (isFile) {
+            // setDirectoryTreeObject({
+            //   ...directoryTreeObject,
+            //   file: new File([], finalName),
+            // });
+            onEnterHandler({
               ...directoryTreeObject,
-              file: new File([],`${inputValue.trim()}.txt`),
+              file: new File([], finalName),
             });
-          } else{
-            setDirectoryTreeObject({
+          } else {
+            // setDirectoryTreeObject({
+            //   ...directoryTreeObject,
+            //   name: finalName,
+            //   isExtended: true,
+            // });
+            onEnterHandler({
               ...directoryTreeObject,
-              name: inputValue.trim(),
+              name: finalName,
               isExtended: true,
             });
           }
-
+  
           setIsEditing(false);
-          if (Object.keys(directoryTreeObject).includes('file')) {
-            onEnterHandler({
-              ...directoryTreeObject,
-              file: new File(['ygyggy'],`${inputValue.trim()}.txt`),
-            });
-          } else{
-            onEnterHandler({
-              ...directoryTreeObject,
-              name: inputValue.trim(),
-              isExtended: true,
-            });
-          }
         } else {
-          alert("Please enter a folder name");
+          alert("Please enter a valid name");
         }
       }
     },
     [directoryTreeObject, inputValue, onEnterHandler, checkDuplicate]
   );
+  
 
   const addChild = (type: 'folder' | 'file') => {
     if ( Object.keys(directoryTreeObject).includes('file')) return
@@ -154,21 +155,20 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
     
   };
 
-  const fileOpenHandler = () =>{
-    const FileOpenManager = directoryTreeObject as FileManager;
-    if (FileOpenManager.file){
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (onFileContentChange) {
-          onFileContentChange(event.target?.result as string);
-        }
-      };
-      reader.readAsText(FileOpenManager.file);
-    } else {
-        alert('There is no file to read!');
-    }
-  };
-
+  const fileOpenHandler = () => {
+  const fileManager = directoryTreeObject as FileManager;
+  if (fileManager.file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (onFileContentChange) {
+        onFileContentChange(event.target?.result as string);
+      }
+    };
+    reader.readAsText(fileManager.file);
+  } else {
+      alert('There is no file to read!');
+  }
+};
   const feildName = useMemo(() =>{
     if (Object.keys(directoryTreeObject).includes('file')){
       return (directoryTreeObject as FileManager).file?.name
@@ -233,7 +233,7 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
               key={child.id}
               directoryOrFile={child}
               onEnterHandler={(updatedChild) => {
-                console.log((updatedChild as FileManager).file?.name)
+                // console.log((updatedChild as FileManager).file?.name)
                 if ((updatedChild as DirectoryManager).name === "__REMOVE__" || (updatedChild as FileManager).file?.name === "__REMOVE__") {
                   setDirectoryTreeObject({
                     ...directoryTreeObject,
@@ -250,20 +250,27 @@ const DirectoryAndFileRenderer: React.FC<DirectoryAndFileRendererProps> = ({
                   });
                 }
               }}
-              checkDuplicate={(name: string) => {
-                return (directoryTreeObject as DirectoryManager).children.some(
-                (child) => {
-                  if (Object.keys(directoryTreeObject).includes('file')){
-                    return (child as FileManager).file?.name === name
+              checkDuplicate={(name: string, type: "file" | "directory") => {
+                const currentChildren = (directoryTreeObject as DirectoryManager).children;
+                
+                return currentChildren.some((child) => {
+                  const isChildFile = Object.keys(child).includes("file");
+              
+                  if (type === "file") {
+                    if (isChildFile) {
+                      return (child as FileManager).file?.name === name;
+                    } else {
+                      return false;
+                    }
+                  } else {
+                    if (!isChildFile) {
+                      return (child as DirectoryManager).name === name;
+                    } else {
+                      return false;
+                    }
                   }
-                  else{
-                    return (child as DirectoryManager).name === name
-                  }
-                  
-                } 
-              );
-            }
-              }
+                });
+              }}
               fileContent={fileContent}
               onFileContentChange={onFileContentChange}
             />
