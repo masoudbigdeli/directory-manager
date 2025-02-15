@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import HomeWrapper, {
   MenuWrapper,
   TextAreaWrapper,
@@ -11,29 +11,25 @@ import HomeWrapper, {
 import DirectoryAndFileRenderer, {
   DirectoryManager,
   FileManager,
-  DirectoryAndFileRendererRef,
 } from "../../components/directory-renderer";
 import PlusIcon from "../../components/icons/add-directory-icon";
 
 export default function Home() {
+  // Central state holds the entire tree.
   const [treeObject, setTreeObject] = useState<DirectoryManager | FileManager | null>(null);
   const [textValue, setTextValue] = useState("");
   // Track which file (by id) is currently open.
   const [openFileId, setOpenFileId] = useState<string | null>(null);
 
-  // Ref to access the top-level DirectoryAndFileRenderer's up‑to‑date local state.
-  const directoryRendererRef = useRef<DirectoryAndFileRendererRef>(null);
-
-  // Whenever a change occurs in the child tree, update Home’s state.
-  const handleOnEnter = useCallback((object: DirectoryManager | FileManager) => {
-    // For removals, we set treeObject to null.
+  // When a change occurs in the tree, update the central state.
+  const handleOnEnter = useCallback((node: DirectoryManager | FileManager) => {
     if (
-      ("name" in object && object.name === "__REMOVE__") ||
-      ("file" in object && object.file?.name === "__REMOVE__")
+      ("name" in node && node.name === "__REMOVE__") ||
+      ("file" in node && node.file?.name === "__REMOVE__")
     ) {
       setTreeObject(null);
     } else {
-      setTreeObject(object);
+      setTreeObject(node);
     }
   }, []);
 
@@ -41,44 +37,39 @@ export default function Home() {
     setTextValue(newContent);
   }, []);
 
-  // Recursively update the file node (identified by openFileId) with the new text.
-  const updateFileInTree = (
-    node: DirectoryManager | FileManager
-  ): DirectoryManager | FileManager => {
-    if ("file" in node) {
-      if (node.id === openFileId && node.file) {
-        const fileName = node.file.name;
-        const updatedFile = new File([textValue], fileName, { type: "text/plain" });
-        return { ...node, file: updatedFile };
+  const updateFileInTree = useCallback(
+    (node: DirectoryManager | FileManager): DirectoryManager | FileManager => {
+      if ("file" in node) {
+        if (node.id === openFileId && node.file) {
+          const fileName = node.file.name;
+          const updatedFile = new File([textValue], fileName, { type: "text/plain" });
+          return { ...node, file: updatedFile };
+        }
+        return node;
+      } else {
+        return {
+          ...node,
+          children: node.children.map((child) => updateFileInTree(child)),
+        };
       }
-      return node;
-    } else {
-      return {
-        ...node,
-        children: node.children.map((child) => updateFileInTree(child)),
-      };
-    }
-  };
+    },
+    [openFileId, textValue]
+  );
 
   const handleSave = useCallback(() => {
-    // Grab the current tree from the DirectoryAndFileRenderer’s local state.
-    let currentTree: DirectoryManager | FileManager | null = treeObject;
-    if (directoryRendererRef.current) {
-      currentTree = directoryRendererRef.current.getCurrentTree();
-    }
-    if (openFileId && currentTree) {
-      const updatedTree = updateFileInTree(currentTree);
+    if (treeObject && openFileId) {
+      const updatedTree = updateFileInTree(treeObject);
       setTreeObject(updatedTree);
       alert(`File changes saved! (Open File ID: ${openFileId})`);
-    } else if (currentTree && "file" in currentTree && currentTree.file) {
-      const fileName = currentTree.file.name;
+    } else if (treeObject && "file" in treeObject && treeObject.file) {
+      const fileName = treeObject.file.name;
       const updatedFile = new File([textValue], fileName, { type: "text/plain" });
-      setTreeObject({ ...currentTree, file: updatedFile });
+      setTreeObject({ ...treeObject, file: updatedFile });
       alert(`${fileName} changes saved! :)`);
     } else {
       alert("No file is currently open to save.");
     }
-  }, [openFileId, treeObject, textValue]);
+  }, [treeObject, openFileId, textValue, updateFileInTree]);
 
   return (
     <HomeWrapper>
@@ -104,12 +95,10 @@ export default function Home() {
         <BodyWrapper>
           {treeObject && (
             <DirectoryAndFileRenderer
-              ref={directoryRendererRef} // Pass the ref to access the local state.
               directoryOrFile={treeObject}
               onEnterHandler={handleOnEnter}
               fileContent={textValue}
               onFileContentChange={handleFileContentChange}
-              // When a file is opened, store its id.
               onFileOpen={(fileId: string) => setOpenFileId(fileId)}
             />
           )}
