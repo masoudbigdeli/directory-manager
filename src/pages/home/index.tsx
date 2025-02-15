@@ -26,7 +26,7 @@ export default function Home() {
   }, []);
 
   const handleSave = useCallback(() => {
-    console.log(treeObject)
+    console.log(treeObject && (treeObject as FileManager).file)
     if (treeObject && Object.keys(treeObject).includes('file') && (treeObject as FileManager).file) {
       const fileName = (treeObject as FileManager).file!.name;
       const updatedFile = new File([textValue], fileName, {

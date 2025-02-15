@@ -39,7 +39,7 @@ export const MenuWrapper =styled.div({
     boxSizing:'border-box',
     width: '30%',
     height: '100vh',
-    minWidth:'15rem',
+    minWidth:'18rem',
     display:'flex',
     flexDirection: 'column',
     alignItems: 'start',
